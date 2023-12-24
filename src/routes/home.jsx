@@ -41,7 +41,6 @@ export default function AddContactForm() {
       }
     };
 
-    // Appelez la fonction fetchData lors du rendu initial
     fetchData();
   }, [system, headquarters, token]);
   const handleGoButtonClick = (item) => {
@@ -50,6 +49,10 @@ export default function AddContactForm() {
 
     // Redirige vers la page /buy
     window.location.href = "/buy";
+  };
+  const handleShipButtonClick = () => {
+    // Redirige vers la page /buy
+    window.location.href = "/ships";
   };
 
   return (
@@ -68,6 +71,7 @@ export default function AddContactForm() {
           <button onClick={() => handleGoButtonClick(item)}> Go </button>
         </div>
       ))}
+      <button onClick={() => handleShipButtonClick()}> Mes vaisseaux </button>
     </div>
   );
 }

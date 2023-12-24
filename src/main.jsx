@@ -17,6 +17,8 @@ import "./index.css";
 import Home from "./routes/home";
 import Profil from "./routes/profil";
 import Buy from "./routes/buy";
+import Ships from "./routes/ships";
+import Dashboard from "./routes/dashboard";
 
 const router = createBrowserRouter([
   {
@@ -41,12 +43,20 @@ const router = createBrowserRouter([
             element: <Home />,
           },
           {
+            path: "dashboard",
+            element: <Dashboard />,
+          },
+          {
             path: "profil",
             element: <Profil />,
           },
           {
             path: "buy",
             element: <Buy />,
+          },
+          {
+            path: "ships",
+            element: <Ships />,
           },
           {
             path: "contacts/:contactId/edit",
