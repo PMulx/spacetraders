@@ -180,6 +180,26 @@ export default function Vaisseau(props = {}) {
     }
   };
 
+  const handleGoClick = async (symbol) => {
+    const options = {
+      method: "POST",
+      url: `https://api.spacetraders.io/v2/my/ships/${data.symbol}/navigate`,
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      data: { waypointSymbol: symbol },
+    };
+
+    try {
+      const { data } = await axios.request(options);
+      window.location.reload();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const [selectedMode, setSelectedMode] = useState("changer");
 
   const handleChange = async (e) => {
@@ -305,7 +325,7 @@ export default function Vaisseau(props = {}) {
           </Link>
           <div className="vaisseau__page">
             <div className="vaisseau__page--left">
-              <button className="btn__able" onClick={Reload}>
+              <button className="btn__able btn__refresh" onClick={Reload}>
                 {" "}
                 Recharger{" "}
               </button>
@@ -428,20 +448,37 @@ export default function Vaisseau(props = {}) {
                     fill="#66CCFF"
                   />
                 </svg>
-
                 {data ? (
                   data.nav.status === "IN_ORBIT" ? (
-                    <button className="btn__able" onClick={handleScanWaypoints}>
-                      Scannez les Waypoints
-                    </button>
+                    <>
+                      {data.mounts.some((mount) =>
+                        mount.name.toLowerCase().includes("sensor")
+                      ) ? (
+                        <button
+                          className="btn__able"
+                          onClick={handleScanWaypoints}
+                        >
+                          Scannez les Waypoints
+                        </button>
+                      ) : (
+                        <>
+                          <button disabled className="btn__disabled">
+                            Scannez les Waypoints
+                          </button>
+                          <p className="msg__error">
+                            Vous n'avez pas les technologies pour scanner les
+                            waypoints.
+                          </p>
+                        </>
+                      )}
+                    </>
                   ) : (
                     <>
                       <button disabled className="btn__disabled">
                         Scannez les Waypoints
                       </button>
                       <p className="msg__error">
-                        {" "}
-                        Vous devez passer en orbit pour scannez les waypoints
+                        Vous devez passer en orbit pour scanner les waypoints.
                       </p>
                     </>
                   )
@@ -562,10 +599,70 @@ export default function Vaisseau(props = {}) {
                 {data && data.cargo && data.cargo.inventory && (
                   <div className="inventory">
                     {data.cargo.inventory.map((item, index) => (
-                      <p key={index}>
-                        <strong>{item.name}</strong> ({item.units})
-                      </p>
+                      <div className="inventory__item" key={index}>
+                        <p>
+                          <strong>{item.name}</strong> ({item.units})
+                        </p>
+                        {data.nav.status === "IN_TRANSIT" ? (
+                          <svg
+                            width="25"
+                            height="25"
+                            viewBox="0 0 18 18"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <g clip-path="url(#clip0_24_41)">
+                              <path
+                                d="M15.8399 16.56C16.6352 16.56 17.2799 15.9153 17.2799 15.12C17.2799 14.3247 16.6352 13.68 15.8399 13.68C15.0446 13.68 14.3999 14.3247 14.3999 15.12C14.3999 15.9153 15.0446 16.56 15.8399 16.56Z"
+                                fill="#FF3333"
+                              />
+                              <path
+                                d="M5.39996 16.56C6.19525 16.56 6.83996 15.9153 6.83996 15.12C6.83996 14.3247 6.19525 13.68 5.39996 13.68C4.60467 13.68 3.95996 14.3247 3.95996 15.12C3.95996 15.9153 4.60467 16.56 5.39996 16.56Z"
+                                fill="#FF3333"
+                              />
+                              <path
+                                d="M16.92 11.88H5.67756L5.91768 11.4905C6.02064 11.3234 6.05088 11.1215 6.00156 10.9314L5.7672 10.0292L16.2011 9.48708C16.5967 9.46692 16.92 9.126 16.92 8.73V3.96C16.92 3.564 16.596 3.24 16.2 3.24H4.00284L3.86208 2.69892C3.82198 2.5446 3.73179 2.40796 3.60565 2.31042C3.47951 2.21289 3.32457 2.15998 3.16512 2.16H0.72C0.529044 2.16 0.345909 2.23586 0.210883 2.37089C0.0758569 2.50591 0 2.68905 0 2.88C0 3.07096 0.0758569 3.25409 0.210883 3.38912C0.345909 3.52415 0.529044 3.6 0.72 3.6H2.60856L4.53096 10.9962L3.77496 12.222C3.70772 12.3311 3.67082 12.4561 3.6681 12.5842C3.66538 12.7123 3.69693 12.8388 3.75948 12.9506C3.82178 13.0626 3.91286 13.1559 4.02331 13.2208C4.13376 13.2858 4.25956 13.32 4.38768 13.32H16.92C17.111 13.32 17.2941 13.2441 17.4291 13.1091C17.5641 12.9741 17.64 12.791 17.64 12.6C17.64 12.409 17.5641 12.2259 17.4291 12.0909C17.2941 11.9559 17.111 11.88 16.92 11.88Z"
+                                fill="#FF3333"
+                              />
+                            </g>
+                            <defs>
+                              <clipPath id="clip0_24_41">
+                                <rect width="18" height="18" fill="white" />
+                              </clipPath>
+                            </defs>
+                          </svg>
+                        ) : (
+                          <svg
+                            width="25"
+                            height="25"
+                            viewBox="0 0 18 18"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <g clip-path="url(#clip0_24_41)">
+                              <path
+                                d="M15.8399 16.56C16.6352 16.56 17.2799 15.9153 17.2799 15.12C17.2799 14.3247 16.6352 13.68 15.8399 13.68C15.0446 13.68 14.3999 14.3247 14.3999 15.12C14.3999 15.9153 15.0446 16.56 15.8399 16.56Z"
+                                fill="#9933cc"
+                              />
+                              <path
+                                d="M5.39996 16.56C6.19525 16.56 6.83996 15.9153 6.83996 15.12C6.83996 14.3247 6.19525 13.68 5.39996 13.68C4.60467 13.68 3.95996 14.3247 3.95996 15.12C3.95996 15.9153 4.60467 16.56 5.39996 16.56Z"
+                                fill="#9933cc"
+                              />
+                              <path
+                                d="M16.92 11.88H5.67756L5.91768 11.4905C6.02064 11.3234 6.05088 11.1215 6.00156 10.9314L5.7672 10.0292L16.2011 9.48708C16.5967 9.46692 16.92 9.126 16.92 8.73V3.96C16.92 3.564 16.596 3.24 16.2 3.24H4.00284L3.86208 2.69892C3.82198 2.5446 3.73179 2.40796 3.60565 2.31042C3.47951 2.21289 3.32457 2.15998 3.16512 2.16H0.72C0.529044 2.16 0.345909 2.23586 0.210883 2.37089C0.0758569 2.50591 0 2.68905 0 2.88C0 3.07096 0.0758569 3.25409 0.210883 3.38912C0.345909 3.52415 0.529044 3.6 0.72 3.6H2.60856L4.53096 10.9962L3.77496 12.222C3.70772 12.3311 3.67082 12.4561 3.6681 12.5842C3.66538 12.7123 3.69693 12.8388 3.75948 12.9506C3.82178 13.0626 3.91286 13.1559 4.02331 13.2208C4.13376 13.2858 4.25956 13.32 4.38768 13.32H16.92C17.111 13.32 17.2941 13.2441 17.4291 13.1091C17.5641 12.9741 17.64 12.791 17.64 12.6C17.64 12.409 17.5641 12.2259 17.4291 12.0909C17.2941 11.9559 17.111 11.88 16.92 11.88Z"
+                                fill="#9933cc"
+                              />
+                            </g>
+                            <defs>
+                              <clipPath id="clip0_24_41">
+                                <rect width="18" height="18" fill="white" />
+                              </clipPath>
+                            </defs>
+                          </svg>
+                        )}
+                      </div>
                     ))}
+
                     {data ? (
                       data.nav.status === "IN_TRANSIT" ? (
                         <div className="btn__disabled">Marketplace</div>
@@ -579,6 +676,7 @@ export default function Vaisseau(props = {}) {
                     )}
                   </div>
                 )}
+
                 <div className="refuel">
                   {data && waypointData ? (
                     data.nav.status === "DOCKED" &&
@@ -679,6 +777,8 @@ export default function Vaisseau(props = {}) {
                   <th>X | Y</th>
                   <th>Traits</th>
                   <th>Type</th>
+                  <th> </th>
+                  <th>Notes</th>
                 </tr>
               </thead>
               <tbody>
@@ -695,6 +795,32 @@ export default function Vaisseau(props = {}) {
                         ))}
                       </td>
                       <td>{item.type}</td>
+                      <td>
+                        <button
+                          className="btn__able"
+                          onClick={() => handleGoClick(item.symbol)}
+                        >
+                          {" "}
+                          Go{" "}
+                        </button>
+                      </td>
+                      <td>
+                        <button className="btn__note" onClick={""}>
+                          {" "}
+                          <svg
+                            width="30"
+                            height="30"
+                            viewBox="0 0 30 30"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M9.0625 10C9.0625 9.75136 9.16127 9.5129 9.33709 9.33709C9.5129 9.16127 9.75136 9.0625 10 9.0625H20C20.2486 9.0625 20.4871 9.16127 20.6629 9.33709C20.8387 9.5129 20.9375 9.75136 20.9375 10C20.9375 10.2486 20.8387 10.4871 20.6629 10.6629C20.4871 10.8387 20.2486 10.9375 20 10.9375H10C9.75136 10.9375 9.5129 10.8387 9.33709 10.6629C9.16127 10.4871 9.0625 10.2486 9.0625 10ZM10 15.9375H20C20.2486 15.9375 20.4871 15.8387 20.6629 15.6629C20.8387 15.4871 20.9375 15.2486 20.9375 15C20.9375 14.7514 20.8387 14.5129 20.6629 14.3371C20.4871 14.1613 20.2486 14.0625 20 14.0625H10C9.75136 14.0625 9.5129 14.1613 9.33709 14.3371C9.16127 14.5129 9.0625 14.7514 9.0625 15C9.0625 15.2486 9.16127 15.4871 9.33709 15.6629C9.5129 15.8387 9.75136 15.9375 10 15.9375ZM15 19.0625H10C9.75136 19.0625 9.5129 19.1613 9.33709 19.3371C9.16127 19.5129 9.0625 19.7514 9.0625 20C9.0625 20.2486 9.16127 20.4871 9.33709 20.6629C9.5129 20.8387 9.75136 20.9375 10 20.9375H15C15.2486 20.9375 15.4871 20.8387 15.6629 20.6629C15.8387 20.4871 15.9375 20.2486 15.9375 20C15.9375 19.7514 15.8387 19.5129 15.6629 19.3371C15.4871 19.1613 15.2486 19.0625 15 19.0625ZM29.6875 2.5V19.4828C29.688 19.7702 29.6317 20.0548 29.5218 20.3203C29.4118 20.5857 29.2504 20.8269 29.0469 21.0297L21.0297 29.0469C20.8269 29.2504 20.5857 29.4118 20.3203 29.5218C20.0548 29.6317 19.7702 29.688 19.4828 29.6875H2.5C1.91984 29.6875 1.36344 29.457 0.953204 29.0468C0.542968 28.6366 0.3125 28.0802 0.3125 27.5V2.5C0.3125 1.91984 0.542968 1.36344 0.953204 0.953204C1.36344 0.542968 1.91984 0.3125 2.5 0.3125H27.5C28.0802 0.3125 28.6366 0.542968 29.0468 0.953204C29.457 1.36344 29.6875 1.91984 29.6875 2.5ZM2.5 27.8125H19.0625V20C19.0625 19.7514 19.1613 19.5129 19.3371 19.3371C19.5129 19.1613 19.7514 19.0625 20 19.0625H27.8125V2.5C27.8125 2.41712 27.7796 2.33763 27.721 2.27903C27.6624 2.22042 27.5829 2.1875 27.5 2.1875H2.5C2.41712 2.1875 2.33763 2.22042 2.27903 2.27903C2.22042 2.33763 2.1875 2.41712 2.1875 2.5V27.5C2.1875 27.5829 2.22042 27.6624 2.27903 27.721C2.33763 27.7796 2.41712 27.8125 2.5 27.8125ZM26.4875 20.9375H20.9375V26.4875L26.4875 20.9375Z"
+                              fill="#9933CC"
+                            />
+                          </svg>
+                        </button>
+                      </td>
                     </tr>
                   ))
                 ) : (
