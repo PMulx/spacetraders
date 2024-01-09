@@ -37,7 +37,7 @@ export default function UserList() {
       <section className="home">
         <section className="home__left">
           <h1 className="home__left--logo">
-            <img src="/public/images/logo.png" /> NovaPilot{" "}
+            <img src="/images/logo.png" /> NovaPilot{" "}
           </h1>
           <h2 className="h2__title"> Bonjour, et bienvenue sur NovaPilot</h2>
           <p className="home__left--text">
