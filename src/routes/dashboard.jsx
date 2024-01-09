@@ -165,7 +165,12 @@ export default function AddContactForm() {
                         {ship.nav.route.destination.type}
                       </p>
                     </div>
-                    <Link to={"#"}>Voir plus de détails</Link>
+                    <Link
+                      className="vaisseau__infos--link"
+                      to={`/vaisseau?symbol=${ship.symbol}`}
+                    >
+                      Voir plus de détails
+                    </Link>
                   </div>
                 ))
               ) : (

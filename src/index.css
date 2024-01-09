@@ -33,9 +33,32 @@ body {
   --secondaire: #9933cc;
 }
 
+.hidden {
+  display: none;
+}
+
 h2,
 h3 {
   color: var(--black);
+}
+
+.btn__able {
+  border-radius: 0.5rem;
+  border: 1px solid var(--secondaire);
+  background-color: transparent;
+  color: var(--black);
+  font-family: "Titillium";
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+.btn__disabled {
+  border-radius: 0.5rem;
+  border: none;
+  background-color: var(--grey);
+  color: var(--error);
+  font-family: "Titillium";
+  font-weight: 700;
+  padding: 0.5rem 1rem;
 }
 
 .home {
@@ -215,15 +238,20 @@ h3 {
   }
 }
 
-.dashboard {
+.dashboard,
+.vaisseaux,
+.buying {
   background-color: var(--grey);
   padding: 2rem 4rem;
   max-height: 100vh;
+}
+
+.dashboard {
   .dashboard__divs {
     display: grid;
     grid-template-columns: 1.4fr 0.6fr;
     grid-gap: 20px;
-    max-height: 100vh;
+    max-height: 82vh;
     .dashboard__ships {
       grid-column: 1 / 2;
       grid-row: 1 / span 4;
@@ -312,6 +340,8 @@ h3 {
       background-color: var(--white);
       border-radius: 0.5rem;
       padding: 2rem 3rem;
+      max-height: 31.5vh;
+      overflow-y: auto;
       h3 {
         margin: 0px;
         text-align: center;
@@ -319,9 +349,487 @@ h3 {
       .dashboard__cargo--units {
         display: flex;
         justify-content: space-between;
-        font-family: "Titilium";
+        font-family: "Titillium";
         font-size: 1.2rem;
+        font-weight: 800;
+      }
+    }
+  }
+}
+.allship__buy {
+  display: flex;
+  justify-content: space-between;
+  .buyship {
+    display: flex;
+    padding: 1rem 2rem;
+    width: 45%;
+    background-color: var(--white);
+    border-radius: 0.5rem;
+    .name {
+      margin: 0;
+      font-family: "Orbitron";
+      font-size: 1.3rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .type,
+    .modules,
+    .price {
+      margin-top: 1.5rem;
+      display: flex;
+      gap: 1.5rem;
+      align-items: flex-end;
+      p {
+        margin: 0;
+        font-size: 1.1rem;
+        font-family: "Titillium";
         font-weight: 600;
+      }
+    }
+    .description {
+      font-size: 0.9rem;
+      font-family: "Titillium";
+      font-weight: 200;
+      height: 20%;
+      font-style: italic;
+      text-align: justify;
+    }
+    .btn__buy {
+      font-size: 1.1rem;
+      text-transform: uppercase;
+      font-family: "Orbitron";
+      margin-top: 1.5rem;
+      background-color: var(--secondaire);
+      color: var(--white);
+      padding: 0.6rem 2.4rem;
+      border: none;
+      border-radius: 2rem;
+      cursor: pointer;
+    }
+    .progress__container {
+      width: 60%;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-around;
+      margin-top: 20px;
+      .progress__bar {
+        position: relative;
+        border-radius: 0.2rem;
+        width: 2rem;
+        background-color: var(--secondaire);
+        height: 80%;
+        svg {
+          position: absolute;
+          top: -3rem;
+        }
+        strong {
+          font-size: 1.1rem;
+          font-family: "Orbitron";
+          position: absolute;
+          bottom: -2rem;
+        }
+      }
+    }
+  }
+}
+
+.vaisseaux {
+  .vaisseaux__link {
+    display: flex;
+    justify-content: flex-end;
+    gap: 5rem;
+    .vaisseaux__link--buy,
+    .vaisseaux__link--search {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-size: 0.8rem;
+      font-family: "Orbitron";
+      padding: 1rem 1.5rem;
+      border-radius: 2rem;
+      border: none;
+      text-decoration: none;
+    }
+    .vaisseaux__link--buy {
+      font-weight: 800;
+      background-color: var(--principal);
+      color: var(--black);
+    }
+    .vaisseaux__link--search {
+      background-color: var(--white);
+      input {
+        border: none;
+        background-color: transparent;
+        &:focus {
+          outline: none;
+          border-bottom: 0.1rem solid var(--black);
+        }
+      }
+    }
+    ::placeholder,
+    input {
+      color: var(--black);
+      font-family: "Orbitron";
+    }
+  }
+  .vaisseau {
+    margin-top: 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: space-between;
+    align-items: center;
+    .vaisseau__infos {
+      display: flex;
+      border-radius: 2rem;
+      padding: 1rem 2rem;
+      padding-bottom: 2rem;
+      background-color: var(--white);
+      width: 45%;
+      .vaisseau__infos--txt {
+        width: 75%;
+        .symbol {
+          font-family: "Orbitron";
+          font-weight: 600;
+          font-size: 1.2rem;
+          margin-bottom: 2rem;
+        }
+        .destination,
+        .engine {
+          display: flex;
+          align-items: flex-end;
+          gap: 2rem;
+          font-family: "Titillium";
+          margin-bottom: 3rem;
+        }
+        .vaisseau__infos--link {
+          font-size: 1rem;
+          font-family: "Orbitron";
+          padding: 0.7rem 1.5rem;
+          color: var(--white);
+          border-radius: 2rem;
+          text-decoration: none;
+          background-color: var(--secondaire);
+          text-align: center;
+        }
+      }
+      .vaisseau__infos--contain {
+        display: flex;
+        gap: 2rem;
+        .progress-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          margin-top: 20px;
+          p {
+            display: flex;
+            flex-direction: column;
+            margin: 0px;
+            font-family: "Orbitron";
+            font-weight: 500;
+            align-items: center;
+            span {
+              border-top: 0.1rem solid var(--black);
+            }
+          }
+          svg {
+            margin-bottom: 1rem;
+          }
+        }
+
+        .progress-bar {
+          width: 2rem;
+          height: 90%;
+          background-color: var(--grey);
+          border-radius: 0.2rem;
+          position: relative;
+          margin-bottom: 10px;
+        }
+
+        .progress-fill {
+          width: 2rem;
+          position: absolute;
+          border-radius: 0.2rem;
+          bottom: 0;
+          left: 0;
+          background-color: var(--secondaire);
+        }
+      }
+    }
+  }
+}
+
+.buying {
+  .buying__link {
+    display: flex;
+    justify-content: space-between;
+    gap: 5rem;
+    align-items: center;
+    .buying__link--money,
+    .buying__link--search {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      font-size: 1.2rem;
+      font-family: "Orbitron";
+      padding: 1rem 1.5rem;
+      border-radius: 2rem;
+      border: none;
+      text-decoration: none;
+      font-weight: 800;
+      background-color: var(--white);
+      color: var(--black);
+    }
+    .buying__link--search {
+      height: 100%;
+      input {
+        border: none;
+        background-color: transparent;
+        &:focus {
+          outline: none;
+          border-bottom: 0.1rem solid var(--black);
+        }
+      }
+    }
+    ::placeholder,
+    input {
+      color: var(--black);
+      font-family: "Orbitron";
+    }
+  }
+}
+
+.listwaypoints,
+.marketplace {
+  position: absolute;
+  background-color: var(--grey);
+  height: 95vh;
+  max-height: 95vh;
+  overflow-y: auto;
+  width: 78vw;
+  padding: 2rem;
+  top: 50%;
+  left: 50%;
+  transform: translate(-38%, -50%);
+  text-align: center;
+  .closed {
+    background-color: transparent;
+    border: none;
+    position: fixed;
+    right: 2rem;
+    top: 4rem;
+    cursor: pointer;
+  }
+  h2 {
+    font-size: 2rem;
+    font-family: "Orbitron";
+    color: var(--black);
+  }
+  thead th {
+    font-size: 1.2rem;
+    font-family: "Titillium";
+    font-weight: 800;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  tbody {
+    position: relative;
+    border: 2px solid var(--secondaire);
+  }
+
+  tbody tr {
+    position: relative;
+    font-size: 1rem;
+    font-family: "Titillium";
+    text-transform: uppercase;
+  }
+
+  tbody tr::after {
+    content: "";
+    position: absolute;
+    left: 5%;
+    right: 5%;
+    bottom: 0;
+    height: 2px;
+    background-color: var(--secondaire);
+  }
+}
+
+.vaisseaux {
+  .vaisseaux__retour {
+    width: 5rem;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: var(--error);
+    font-family: "Titillium";
+    text-decoration: none;
+    font-weight: 800;
+  }
+  .vaisseau__cooldown {
+    text-align: center;
+  }
+
+  .cooldown-container {
+    position: relative;
+    width: 10rem;
+    height: 10rem;
+  }
+
+  .cooldown-circle {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background-color: var(--grey); /* couleur du cercle */
+    transform: rotate(-90deg);
+    transform-origin: center;
+  }
+
+  .cooldown-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.2rem;
+    font-family: "Orbitron";
+    color: var(--black);
+  }
+  .vaisseau__page {
+    background-color: var(--white);
+    padding: 2rem 3rem;
+    border-radius: 2rem;
+    display: flex;
+    .vaisseau__page--left {
+      width: 80%;
+    }
+    .msg__error {
+      color: var(--error);
+    }
+    .vaisseau__page--flight,
+    .vaisseau__page--status,
+    .vaisseau__waypoints,
+    .vaisseau__minerais {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      margin-bottom: 2.5rem;
+    }
+    .vaisseau__page--contain {
+      display: flex;
+      gap: 8rem;
+      width: 20%;
+      .progress-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 20px;
+        p {
+          display: flex;
+          flex-direction: column;
+          margin: 0px;
+          font-family: "Orbitron";
+          font-weight: 500;
+          align-items: center;
+          span {
+            border-top: 0.1rem solid var(--black);
+          }
+        }
+        svg {
+          margin-bottom: 1rem;
+        }
+      }
+
+      .progress-bar {
+        width: 2rem;
+        height: 90%;
+        background-color: var(--grey);
+        border-radius: 0.2rem;
+        position: relative;
+        margin-bottom: 10px;
+        border-radius: 0.2rem;
+      }
+
+      .progress-fill {
+        width: 2rem;
+        position: absolute;
+        border-radius: 0.2rem;
+        bottom: 0;
+        left: 0;
+        background-color: var(--secondaire);
+        border-radius: 0.2rem;
+      }
+    }
+    .vaisseau__page--place {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin: 2.5rem 0rem;
+      p {
+        font-family: "Titillium";
+        margin: 0;
+      }
+      .strong {
+        font-weight: 800;
+      }
+    }
+    .vaisseau__page--name {
+      h3,
+      p {
+        margin: 0px;
+      }
+      p {
+        font-family: "Orbitron";
+        font-size: 1.4rem;
+      }
+    }
+    .vaisseau__page--right {
+      display: flex;
+      flex-direction: column;
+
+      > :first-child {
+        flex: 0 0 80%;
+      }
+      .progress__bar--bottom {
+        padding-bottom: 2rem;
+        display: flex;
+        gap: 4rem;
+        .refuel {
+          .refuel__ok {
+            cursor: pointer;
+            border: 1px solid var(--secondaire);
+            border-radius: 0.2rem;
+            padding: 0.2rem 1rem;
+            font-size: 3rem;
+            margin: 0;
+            font-weight: 900;
+            color: var(--error);
+          }
+          .refuel__no {
+            border: none;
+            background-color: var(--grey);
+            color: var(--error);
+            padding: 0.2rem 1rem;
+            font-size: 3rem;
+            margin: 0;
+            font-weight: 900;
+          }
+        }
+        .inventory {
+          font-size: 0.8rem;
+          flex: 1;
+          max-height: 8rem;
+          overflow-y: auto;
+          border-radius: 0.2rem;
+          border: 1px solid var(--secondaire);
+          padding: 0.2rem 0.5rem;
+        }
       }
     }
   }
