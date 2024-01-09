@@ -241,7 +241,7 @@ export default function Vaisseau(props = {}) {
       <div className="page">
         <section className="menu">
           <h1 className="menu__logo">
-            <img src="/public/images/logo.png" /> NovaPilot{" "}
+            <img src="/images/logo.png" /> NovaPilot{" "}
           </h1>
           <div className="menu__link">
             <h3 className="h3__title"> GENERAL </h3>
@@ -280,7 +280,7 @@ export default function Vaisseau(props = {}) {
           </div>
           <p className="menu__made">
             {" "}
-            <img src="/public/images/logo.png" /> 2023 Made by Mulx{" "}
+            <img src="/images/logo.png" /> 2023 Made by Mulx{" "}
           </p>
         </section>
         <section className="vaisseaux">
