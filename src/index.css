@@ -627,10 +627,10 @@ h3 {
   height: 95vh;
   max-height: 95vh;
   overflow-y: auto;
-  width: 78vw;
+  width: 75vw;
   padding: 2rem;
   top: 50%;
-  left: 50%;
+  left: 53%;
   transform: translate(-38%, -50%);
   text-align: center;
   .closed {
@@ -879,13 +879,20 @@ h3 {
           border-radius: 0.2rem;
           border: 1px solid var(--secondaire);
           padding: 0.2rem 0.5rem;
+          .sell__inventory {
+            background-color: transparent;
+            border: none;
+          }
           .inventory__item {
             padding: 0.4rem 0rem;
             display: flex;
             justify-content: space-between;
-            align-items: flex-end;
+            align-items: end;
             p {
               margin: 0;
+            }
+            svg {
+              cursor: pointer;
             }
           }
         }
