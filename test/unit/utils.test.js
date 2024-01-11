@@ -1,19 +1,7 @@
 import { expect, test } from "vitest";
-import { AddContactForm } from "../../src/routes/buy";
-
-console.log("utils.test.js is loaded");
-test("User well connected", () => {
-  console.log("Test is running");
-  globalThis.localStorage = {
-    getItem: () => "mocked-token",
-  };
-
-  const result = AddContactForm();
-
-  const token = result.token;
-
-  expect(token).not.toBeNull();
-  expect(token).not.toBeUndefined();
-  expect(typeof token).toBe("string");
-  expect(token).toBeTruthy();
+import { DistanceDisplay } from "../../src/function/distancetodisplay";
+test("Calcul distance works", () => {
+  const result = DistanceDisplay({ x1: 5, y1: 3, x2: 10, y2: 3 });
+  const expectedDistance = 5; // Remplacez 5 par la distance correcte
+  expect(result).toBe(expectedDistance);
 });

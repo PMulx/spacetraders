@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { Link, useLocation } from "react-router-dom";
+import { DistanceDisplay } from "../function/distancetodisplay";
 
 export default function Vaisseau(props = {}) {
   const token = localStorage.getItem("token");
@@ -261,16 +262,16 @@ export default function Vaisseau(props = {}) {
     }
   };
 
-  const DistanceDisplay = ({ x1, y1, x2, y2 }) => {
-    const calculateDistance = (x1, y1, x2, y2) => {
-      const dx = x2 - x1;
-      const dy = y2 - y1;
-      return Math.sqrt(dx * dx + dy * dy);
-    };
+  // const DistanceDisplay = ({ x1, y1, x2, y2 }) => {
+  //   const calculateDistance = (x1, y1, x2, y2) => {
+  //     const dx = x2 - x1;
+  //     const dy = y2 - y1;
+  //     return Math.sqrt(dx * dx + dy * dy);
+  //   };
 
-    const distance = calculateDistance(x1, y1, x2, y2);
-    return <span>{distance}</span>;
-  };
+  //   const distance = calculateDistance(x1, y1, x2, y2);
+  //   return <span>{distance}</span>;
+  // };
 
   function formatTimeToFrenchLocale(isoTimeString) {
     const arrivalDate = new Date(isoTimeString);
