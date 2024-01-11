@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { Link, useLocation } from "react-router-dom";
 
@@ -7,8 +7,6 @@ export default function Vaisseau(props = {}) {
   const [data, setData] = useState(null);
   const [waypointData, setWaypointData] = useState(null);
   const [marketData, setMarketData] = useState(null);
-  let intervalId;
-  const [cooldown, setCooldown] = useState(null);
 
   const location = useLocation();
   const params = new URLSearchParams(location.search);
@@ -62,38 +60,13 @@ export default function Vaisseau(props = {}) {
             if (marketResponse.status === 200) {
               const marketData = marketResponse.data.data;
               setMarketData(marketData);
-              console.log(marketData);
             }
           }
         } catch (error) {
           console.error("Erreur lors de la récupération des données :", error);
         }
       };
-      const fetchCooldown = async () => {
-        try {
-          const cooldownResponse = await axios.get(
-            `https://api.spacetraders.io/v2/my/ships/${Shipsymbol}/cooldown`,
-            {
-              headers: {
-                Accept: "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-
-          if (cooldownResponse.status === 200) {
-            const cooldownData = cooldownResponse.data.data;
-            setCooldown(cooldownData.remainingSeconds);
-          }
-        } catch (error) {
-          console.error("Erreur lors de la récupération du cooldown :", error);
-        }
-      };
       fetchData();
-      intervalId = setInterval(fetchCooldown, 1000);
-
-      // Nettoyer l'intervalle lors du démontage du composant
-      return () => clearInterval(intervalId);
     }
   }, [Shipsymbol, token]);
 
@@ -133,6 +106,7 @@ export default function Vaisseau(props = {}) {
         }
       );
       setExtractResources(response.data);
+      window.location.reload();
     } catch (error) {
       console.error("Erreur lors de l'interaction avec l'API :", error);
     }
@@ -256,32 +230,68 @@ export default function Vaisseau(props = {}) {
     }
   };
 
-  const sellMaterial = async (shipSymbol, materialSymbol, maxUnits) => {
+  const sellMaterial = async (materialSymbol, maxUnits) => {
     const unitsToSell = prompt(
       `Combien d'unités de ${materialSymbol} voulez-vous vendre ? (maximum : ${maxUnits})`
     );
 
-    if (unitsToSell === null || unitsToSell === "") return; // Si l'utilisateur annule ou ne saisit rien
+    if (unitsToSell === null || unitsToSell === "") return;
 
     const options = {
       method: "POST",
-      url: `https://api.spacetraders.io/v2/my/ships/${shipSymbol}/sell`,
+      url: `https://api.spacetraders.io/v2/my/ships/${data.symbol}/sell`,
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
         Authorization: `Bearer ${token}`,
       },
-      data: { symbol: materialSymbol, units: parseInt(unitsToSell, 10) },
+      data: {
+        symbol: String(materialSymbol),
+        units: parseInt(unitsToSell, 10),
+      },
     };
 
     try {
       const { data } = await axios.request(options);
-      console.log(data);
+      alert("La vente a bien été réalisée.");
+      window.location.reload();
     } catch (error) {
       console.error(error);
       alert("Une erreur s'est produite lors de la vente.");
     }
   };
+
+  const DistanceDisplay = ({ x1, y1, x2, y2 }) => {
+    const calculateDistance = (x1, y1, x2, y2) => {
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      return Math.sqrt(dx * dx + dy * dy);
+    };
+
+    const distance = calculateDistance(x1, y1, x2, y2);
+    return <span>{distance}</span>;
+  };
+
+  function formatTimeToFrenchLocale(isoTimeString) {
+    const arrivalDate = new Date(isoTimeString);
+    const currentDate = new Date();
+
+    const remainingMilliseconds = arrivalDate - currentDate;
+
+    if (remainingMilliseconds > 0) {
+      const minutes = Math.floor(remainingMilliseconds / (1000 * 60));
+      const seconds = Math.floor((remainingMilliseconds % (1000 * 60)) / 1000);
+      return `${minutes} min ${seconds} sec`;
+    } else {
+      const options = {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      };
+      return arrivalDate.toLocaleTimeString("fr-FR", options);
+    }
+  }
 
   return (
     <>
@@ -447,7 +457,7 @@ export default function Vaisseau(props = {}) {
                 {data && data.nav.status === "IN_TRANSIT" && (
                   <span>
                     {data
-                      ? data.nav.route.arrival
+                      ? formatTimeToFrenchLocale(data.nav.route.arrival)
                       : "Calcul du temps restant..."}
                   </span>
                 )}
@@ -551,9 +561,6 @@ export default function Vaisseau(props = {}) {
                     </>
                   )
                 ) : null}
-              </div>
-              <div className="vaisseau__cooldown">
-                <div>{cooldown ? cooldown : "0"} secondes</div>
               </div>
             </div>
             <div className="vaisseau__page--right">
@@ -666,7 +673,7 @@ export default function Vaisseau(props = {}) {
                           <button
                             className="sell__inventory"
                             onClick={() =>
-                              sellMaterial("MULX-1", item.symbol, item.units)
+                              sellMaterial(item.symbol, item.units)
                             }
                           >
                             <svg
@@ -762,144 +769,130 @@ export default function Vaisseau(props = {}) {
               </div>
             </div>
           </div>
-        </section>
-        {marketData ? (
-          <section className="marketplace hidden">
-            <button className="closed" onClick={Closed}>
-              <svg
-                width="28"
-                height="28"
-                viewBox="0 0 28 28"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  fill-rule="evenodd"
-                  clip-rule="evenodd"
-                  d="M14 17.5367L22.8383 26.375C23.3073 26.844 23.9434 27.1075 24.6066 27.1075C25.2699 27.1075 25.906 26.844 26.375 26.375C26.844 25.906 27.1074 25.2699 27.1074 24.6067C27.1074 23.9434 26.844 23.3073 26.375 22.8383L17.5333 14L26.3733 5.16167C26.6054 4.92945 26.7895 4.65378 26.9151 4.35041C27.0407 4.04704 27.1053 3.72191 27.1052 3.39358C27.1051 3.06525 27.0404 2.74014 26.9146 2.43683C26.7889 2.13352 26.6047 1.85795 26.3725 1.62583C26.1402 1.39372 25.8646 1.20962 25.5612 1.08405C25.2578 0.958471 24.9327 0.893878 24.6044 0.893955C24.276 0.894033 23.9509 0.958779 23.6476 1.0845C23.3443 1.21022 23.0687 1.39445 22.8366 1.62667L14 10.465L5.16164 1.62667C4.93113 1.38779 4.65536 1.1972 4.35041 1.06604C4.04547 0.934874 3.71745 0.865755 3.3855 0.862715C3.05356 0.859675 2.72433 0.922774 2.41703 1.04833C2.10973 1.17389 1.83052 1.35939 1.59568 1.59401C1.36083 1.82863 1.17507 2.10767 1.04922 2.41485C0.923377 2.72203 0.859967 3.0512 0.862694 3.38315C0.865421 3.7151 0.93423 4.04318 1.06511 4.34825C1.19598 4.65332 1.38631 4.92927 1.62497 5.16L10.4666 14L1.62664 22.84C1.38797 23.0707 1.19765 23.3467 1.06677 23.6518C0.935897 23.9568 0.867088 24.2849 0.864361 24.6169C0.861634 24.9488 0.925044 25.278 1.05089 25.5851C1.17674 25.8923 1.3625 26.1714 1.59734 26.406C1.83218 26.6406 2.1114 26.8261 2.4187 26.9517C2.726 27.0772 3.05522 27.1403 3.38717 27.1373C3.71912 27.1342 4.04713 27.0651 4.35208 26.934C4.65703 26.8028 4.9328 26.6122 5.1633 26.3733L14 17.5367Z"
-                  fill="#FF3333"
-                />
-              </svg>
-            </button>
-            <h2> Présence dans le market</h2>
-            <table>
-              <thead>
-                <tr>
-                  <th>Symbol</th>
-                  <th>Type</th>
-                  <th>Offre</th>
-                  <th>Activité</th>
-                  <th>Prix d'achat</th>
-                  <th>Prix de vente</th>
-                </tr>
-              </thead>
-              <tbody>
-                {marketData.tradeGoods && marketData.tradeGoods.length > 0 ? (
-                  marketData.tradeGoods.map((item, index) => (
-                    <tr key={index}>
-                      <td>{item.symbol}</td>
-                      <td>{item.type}</td>
-                      <td>{item.supply}</td>
-                      <td>{item.activity}</td>
-                      <td>{item.purchasePrice}</td>
-                      <td>{item.sellPrice}</td>
-                    </tr>
-                  ))
-                ) : (
+          {marketData ? (
+            <section className="marketplace hidden">
+              <button className="closed" onClick={Closed}>
+                <svg
+                  width="28"
+                  height="28"
+                  viewBox="0 0 28 28"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    clip-rule="evenodd"
+                    d="M14 17.5367L22.8383 26.375C23.3073 26.844 23.9434 27.1075 24.6066 27.1075C25.2699 27.1075 25.906 26.844 26.375 26.375C26.844 25.906 27.1074 25.2699 27.1074 24.6067C27.1074 23.9434 26.844 23.3073 26.375 22.8383L17.5333 14L26.3733 5.16167C26.6054 4.92945 26.7895 4.65378 26.9151 4.35041C27.0407 4.04704 27.1053 3.72191 27.1052 3.39358C27.1051 3.06525 27.0404 2.74014 26.9146 2.43683C26.7889 2.13352 26.6047 1.85795 26.3725 1.62583C26.1402 1.39372 25.8646 1.20962 25.5612 1.08405C25.2578 0.958471 24.9327 0.893878 24.6044 0.893955C24.276 0.894033 23.9509 0.958779 23.6476 1.0845C23.3443 1.21022 23.0687 1.39445 22.8366 1.62667L14 10.465L5.16164 1.62667C4.93113 1.38779 4.65536 1.1972 4.35041 1.06604C4.04547 0.934874 3.71745 0.865755 3.3855 0.862715C3.05356 0.859675 2.72433 0.922774 2.41703 1.04833C2.10973 1.17389 1.83052 1.35939 1.59568 1.59401C1.36083 1.82863 1.17507 2.10767 1.04922 2.41485C0.923377 2.72203 0.859967 3.0512 0.862694 3.38315C0.865421 3.7151 0.93423 4.04318 1.06511 4.34825C1.19598 4.65332 1.38631 4.92927 1.62497 5.16L10.4666 14L1.62664 22.84C1.38797 23.0707 1.19765 23.3467 1.06677 23.6518C0.935897 23.9568 0.867088 24.2849 0.864361 24.6169C0.861634 24.9488 0.925044 25.278 1.05089 25.5851C1.17674 25.8923 1.3625 26.1714 1.59734 26.406C1.83218 26.6406 2.1114 26.8261 2.4187 26.9517C2.726 27.0772 3.05522 27.1403 3.38717 27.1373C3.71912 27.1342 4.04713 27.0651 4.35208 26.934C4.65703 26.8028 4.9328 26.6122 5.1633 26.3733L14 17.5367Z"
+                    fill="#FF3333"
+                  />
+                </svg>
+              </button>
+              <h2> Présence dans le market</h2>
+              <table>
+                <thead>
                   <tr>
-                    <td colSpan="4">Loading...</td>
+                    <th>Symbol</th>
+                    <th>Type</th>
+                    <th>Offre</th>
+                    <th>Activité</th>
+                    <th>Prix d'achat</th>
+                    <th>Prix de vente</th>
                   </tr>
-                )}
-              </tbody>
-            </table>
-          </section>
-        ) : (
-          <section className="hidden"></section>
-        )}
-
-        {apiResponse ? (
-          <section className="listwaypoints">
-            <button className="closed" onClick={Closed}>
-              <svg
-                width="28"
-                height="28"
-                viewBox="0 0 28 28"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  fill-rule="evenodd"
-                  clip-rule="evenodd"
-                  d="M14 17.5367L22.8383 26.375C23.3073 26.844 23.9434 27.1075 24.6066 27.1075C25.2699 27.1075 25.906 26.844 26.375 26.375C26.844 25.906 27.1074 25.2699 27.1074 24.6067C27.1074 23.9434 26.844 23.3073 26.375 22.8383L17.5333 14L26.3733 5.16167C26.6054 4.92945 26.7895 4.65378 26.9151 4.35041C27.0407 4.04704 27.1053 3.72191 27.1052 3.39358C27.1051 3.06525 27.0404 2.74014 26.9146 2.43683C26.7889 2.13352 26.6047 1.85795 26.3725 1.62583C26.1402 1.39372 25.8646 1.20962 25.5612 1.08405C25.2578 0.958471 24.9327 0.893878 24.6044 0.893955C24.276 0.894033 23.9509 0.958779 23.6476 1.0845C23.3443 1.21022 23.0687 1.39445 22.8366 1.62667L14 10.465L5.16164 1.62667C4.93113 1.38779 4.65536 1.1972 4.35041 1.06604C4.04547 0.934874 3.71745 0.865755 3.3855 0.862715C3.05356 0.859675 2.72433 0.922774 2.41703 1.04833C2.10973 1.17389 1.83052 1.35939 1.59568 1.59401C1.36083 1.82863 1.17507 2.10767 1.04922 2.41485C0.923377 2.72203 0.859967 3.0512 0.862694 3.38315C0.865421 3.7151 0.93423 4.04318 1.06511 4.34825C1.19598 4.65332 1.38631 4.92927 1.62497 5.16L10.4666 14L1.62664 22.84C1.38797 23.0707 1.19765 23.3467 1.06677 23.6518C0.935897 23.9568 0.867088 24.2849 0.864361 24.6169C0.861634 24.9488 0.925044 25.278 1.05089 25.5851C1.17674 25.8923 1.3625 26.1714 1.59734 26.406C1.83218 26.6406 2.1114 26.8261 2.4187 26.9517C2.726 27.0772 3.05522 27.1403 3.38717 27.1373C3.71912 27.1342 4.04713 27.0651 4.35208 26.934C4.65703 26.8028 4.9328 26.6122 5.1633 26.3733L14 17.5367Z"
-                  fill="#FF3333"
-                />
-              </svg>
-            </button>
-            <h2> Découverte des points de passages</h2>
-            <table>
-              <thead>
-                <tr>
-                  <th>Symbol</th>
-                  <th>X | Y</th>
-                  <th>Traits</th>
-                  <th>Type</th>
-                  <th> </th>
-                  <th>Notes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {apiResponse ? (
-                  apiResponse.waypoints.map((item, index) => (
-                    <tr key={index}>
-                      <td>{item.symbol}</td>
-                      <td>
-                        {item.x} | {item.y}
-                      </td>
-                      <td>
-                        {item.traits.map((trait, traitIndex) => (
-                          <p key={traitIndex}>{trait.name}</p>
-                        ))}
-                      </td>
-                      <td>{item.type}</td>
-                      <td>
-                        <button
-                          className="btn__able"
-                          onClick={() => handleGoClick(item.symbol)}
-                        >
-                          {" "}
-                          Go{" "}
-                        </button>
-                      </td>
-                      <td>
-                        <button className="btn__note" onClick={""}>
-                          {" "}
-                          <svg
-                            width="30"
-                            height="30"
-                            viewBox="0 0 30 30"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
+                </thead>
+                <tbody>
+                  {marketData.tradeGoods && marketData.tradeGoods.length > 0 ? (
+                    marketData.tradeGoods.map((item, index) => (
+                      <tr key={index}>
+                        <td>{item.symbol}</td>
+                        <td>{item.type}</td>
+                        <td>{item.supply}</td>
+                        <td>{item.activity}</td>
+                        <td>{item.purchasePrice}</td>
+                        <td>{item.sellPrice}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="4">Loading...</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </section>
+          ) : (
+            <section className="hidden"></section>
+          )}
+          {apiResponse ? (
+            <section className="listwaypoints">
+              <button className="closed" onClick={Closed}>
+                <svg
+                  width="28"
+                  height="28"
+                  viewBox="0 0 28 28"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    clip-rule="evenodd"
+                    d="M14 17.5367L22.8383 26.375C23.3073 26.844 23.9434 27.1075 24.6066 27.1075C25.2699 27.1075 25.906 26.844 26.375 26.375C26.844 25.906 27.1074 25.2699 27.1074 24.6067C27.1074 23.9434 26.844 23.3073 26.375 22.8383L17.5333 14L26.3733 5.16167C26.6054 4.92945 26.7895 4.65378 26.9151 4.35041C27.0407 4.04704 27.1053 3.72191 27.1052 3.39358C27.1051 3.06525 27.0404 2.74014 26.9146 2.43683C26.7889 2.13352 26.6047 1.85795 26.3725 1.62583C26.1402 1.39372 25.8646 1.20962 25.5612 1.08405C25.2578 0.958471 24.9327 0.893878 24.6044 0.893955C24.276 0.894033 23.9509 0.958779 23.6476 1.0845C23.3443 1.21022 23.0687 1.39445 22.8366 1.62667L14 10.465L5.16164 1.62667C4.93113 1.38779 4.65536 1.1972 4.35041 1.06604C4.04547 0.934874 3.71745 0.865755 3.3855 0.862715C3.05356 0.859675 2.72433 0.922774 2.41703 1.04833C2.10973 1.17389 1.83052 1.35939 1.59568 1.59401C1.36083 1.82863 1.17507 2.10767 1.04922 2.41485C0.923377 2.72203 0.859967 3.0512 0.862694 3.38315C0.865421 3.7151 0.93423 4.04318 1.06511 4.34825C1.19598 4.65332 1.38631 4.92927 1.62497 5.16L10.4666 14L1.62664 22.84C1.38797 23.0707 1.19765 23.3467 1.06677 23.6518C0.935897 23.9568 0.867088 24.2849 0.864361 24.6169C0.861634 24.9488 0.925044 25.278 1.05089 25.5851C1.17674 25.8923 1.3625 26.1714 1.59734 26.406C1.83218 26.6406 2.1114 26.8261 2.4187 26.9517C2.726 27.0772 3.05522 27.1403 3.38717 27.1373C3.71912 27.1342 4.04713 27.0651 4.35208 26.934C4.65703 26.8028 4.9328 26.6122 5.1633 26.3733L14 17.5367Z"
+                    fill="#FF3333"
+                  />
+                </svg>
+              </button>
+              <h2> Découverte des points de passages</h2>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Symbol</th>
+                    <th>Distance</th>
+                    <th>Traits</th>
+                    <th>Type</th>
+                    <th> </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {apiResponse ? (
+                    apiResponse.waypoints.map((item, index) => (
+                      <tr key={index}>
+                        <td>{item.symbol}</td>
+                        <td>
+                          <DistanceDisplay
+                            x1={item.x}
+                            y1={item.y}
+                            x2={data.nav.route.destination.x}
+                            y2={data.nav.route.destination.y}
+                          />
+                        </td>
+                        <td>
+                          {item.traits.map((trait, traitIndex) => (
+                            <p key={traitIndex}>{trait.name}</p>
+                          ))}
+                        </td>
+                        <td>{item.type}</td>
+                        <td>
+                          <button
+                            className="btn__able"
+                            onClick={() => handleGoClick(item.symbol)}
                           >
-                            <path
-                              d="M9.0625 10C9.0625 9.75136 9.16127 9.5129 9.33709 9.33709C9.5129 9.16127 9.75136 9.0625 10 9.0625H20C20.2486 9.0625 20.4871 9.16127 20.6629 9.33709C20.8387 9.5129 20.9375 9.75136 20.9375 10C20.9375 10.2486 20.8387 10.4871 20.6629 10.6629C20.4871 10.8387 20.2486 10.9375 20 10.9375H10C9.75136 10.9375 9.5129 10.8387 9.33709 10.6629C9.16127 10.4871 9.0625 10.2486 9.0625 10ZM10 15.9375H20C20.2486 15.9375 20.4871 15.8387 20.6629 15.6629C20.8387 15.4871 20.9375 15.2486 20.9375 15C20.9375 14.7514 20.8387 14.5129 20.6629 14.3371C20.4871 14.1613 20.2486 14.0625 20 14.0625H10C9.75136 14.0625 9.5129 14.1613 9.33709 14.3371C9.16127 14.5129 9.0625 14.7514 9.0625 15C9.0625 15.2486 9.16127 15.4871 9.33709 15.6629C9.5129 15.8387 9.75136 15.9375 10 15.9375ZM15 19.0625H10C9.75136 19.0625 9.5129 19.1613 9.33709 19.3371C9.16127 19.5129 9.0625 19.7514 9.0625 20C9.0625 20.2486 9.16127 20.4871 9.33709 20.6629C9.5129 20.8387 9.75136 20.9375 10 20.9375H15C15.2486 20.9375 15.4871 20.8387 15.6629 20.6629C15.8387 20.4871 15.9375 20.2486 15.9375 20C15.9375 19.7514 15.8387 19.5129 15.6629 19.3371C15.4871 19.1613 15.2486 19.0625 15 19.0625ZM29.6875 2.5V19.4828C29.688 19.7702 29.6317 20.0548 29.5218 20.3203C29.4118 20.5857 29.2504 20.8269 29.0469 21.0297L21.0297 29.0469C20.8269 29.2504 20.5857 29.4118 20.3203 29.5218C20.0548 29.6317 19.7702 29.688 19.4828 29.6875H2.5C1.91984 29.6875 1.36344 29.457 0.953204 29.0468C0.542968 28.6366 0.3125 28.0802 0.3125 27.5V2.5C0.3125 1.91984 0.542968 1.36344 0.953204 0.953204C1.36344 0.542968 1.91984 0.3125 2.5 0.3125H27.5C28.0802 0.3125 28.6366 0.542968 29.0468 0.953204C29.457 1.36344 29.6875 1.91984 29.6875 2.5ZM2.5 27.8125H19.0625V20C19.0625 19.7514 19.1613 19.5129 19.3371 19.3371C19.5129 19.1613 19.7514 19.0625 20 19.0625H27.8125V2.5C27.8125 2.41712 27.7796 2.33763 27.721 2.27903C27.6624 2.22042 27.5829 2.1875 27.5 2.1875H2.5C2.41712 2.1875 2.33763 2.22042 2.27903 2.27903C2.22042 2.33763 2.1875 2.41712 2.1875 2.5V27.5C2.1875 27.5829 2.22042 27.6624 2.27903 27.721C2.33763 27.7796 2.41712 27.8125 2.5 27.8125ZM26.4875 20.9375H20.9375V26.4875L26.4875 20.9375Z"
-                              fill="#9933CC"
-                            />
-                          </svg>
-                        </button>
-                      </td>
+                            {" "}
+                            Go{" "}
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="4">Loading...</td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="4">Loading...</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </section>
-        ) : (
-          <section className="listwaypoints hidden"></section>
-        )}
+                  )}
+                </tbody>
+              </table>
+            </section>
+          ) : (
+            <section className="listwaypoints hidden"></section>
+          )}
+        </section>
       </div>
     </>
   );
