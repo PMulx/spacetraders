@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 
+console.log("buy.jsx is loaded");
+
 export default function AddContactForm() {
   const storedId = localStorage.getItem("userId");
   if (!storedId) {
