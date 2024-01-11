@@ -2,6 +2,8 @@ import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { Link, useLocation } from "react-router-dom";
 import { DistanceDisplay } from "../function/distancetodisplay";
+import { LocationReload } from "../function/locationreload";
+import { showMarketData } from "../function/showMarketData";
 
 export default function Vaisseau(props = {}) {
   const token = localStorage.getItem("token");
@@ -216,21 +218,6 @@ export default function Vaisseau(props = {}) {
     }
   };
 
-  const Reload = async (e) => {
-    window.location.reload();
-  };
-
-  const Closed = async (e) => {
-    window.location.reload();
-  };
-
-  const showMarketData = async (e) => {
-    const marketplaceSection = document.querySelector(".marketplace");
-    if (marketplaceSection) {
-      marketplaceSection.classList.remove("hidden");
-    }
-  };
-
   const sellMaterial = async (materialSymbol, maxUnits) => {
     const unitsToSell = prompt(
       `Combien d'unités de ${materialSymbol} voulez-vous vendre ? (maximum : ${maxUnits})`
@@ -261,17 +248,6 @@ export default function Vaisseau(props = {}) {
       alert("Une erreur s'est produite lors de la vente.");
     }
   };
-
-  // const DistanceDisplay = ({ x1, y1, x2, y2 }) => {
-  //   const calculateDistance = (x1, y1, x2, y2) => {
-  //     const dx = x2 - x1;
-  //     const dy = y2 - y1;
-  //     return Math.sqrt(dx * dx + dy * dy);
-  //   };
-
-  //   const distance = calculateDistance(x1, y1, x2, y2);
-  //   return <span>{distance}</span>;
-  // };
 
   function formatTimeToFrenchLocale(isoTimeString) {
     const arrivalDate = new Date(isoTimeString);
@@ -363,7 +339,10 @@ export default function Vaisseau(props = {}) {
           </Link>
           <div className="vaisseau__page">
             <div className="vaisseau__page--left">
-              <button className="btn__able btn__refresh" onClick={Reload}>
+              <button
+                className="btn__able btn__refresh"
+                onClick={LocationReload}
+              >
                 {" "}
                 Recharger{" "}
               </button>
@@ -772,7 +751,7 @@ export default function Vaisseau(props = {}) {
           </div>
           {marketData ? (
             <section className="marketplace hidden">
-              <button className="closed" onClick={Closed}>
+              <button className="closed" onClick={LocationReload}>
                 <svg
                   width="28"
                   height="28"
@@ -825,7 +804,7 @@ export default function Vaisseau(props = {}) {
           )}
           {apiResponse ? (
             <section className="listwaypoints">
-              <button className="closed" onClick={Closed}>
+              <button className="closed" onClick={LocationReload}>
                 <svg
                   width="28"
                   height="28"
